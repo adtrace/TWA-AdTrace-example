@@ -10,8 +10,8 @@ import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.graphics.Color;
-import android.net.Uri;
-import android.os.Bundle;
+import android.os.CountDownTimer;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -30,14 +30,17 @@ import androidx.browser.customtabs.CustomTabsSession;
 import androidx.browser.trusted.TrustedWebActivityIntentBuilder;
 
 import io.adtrace.sdk.AdTrace;
+import io.adtrace.sdk.AdTraceAttribution;
+import io.adtrace.sdk.OnDeviceIdsRead;
 
 public class LaunchTwaActivity extends Activity {
-    /** IMPORTANT NOTE:
+    /**
+     * IMPORTANT NOTE:
      * As the main reason for launching TWA using custom methods and overriding some methods was to enable the app to
      * activate lifecycle dependent methods (e.g. AdTrace), there are different ways to do so.
      * the issue was fixed using `CustomTabsServiceConnection` that will allow the app to preserve its lifecycle and
      * avoid destroying it.
-     *
+     * <p>
      * NOTE also:
      * As it is necessary for AdTrace Events to trigger from your server you need to send AdID through query params here on launch.
      * do not forget to include it in the implementation of your app! not useless to mention that you can trigger launch method in AdID callbacks.
@@ -45,6 +48,7 @@ public class LaunchTwaActivity extends Activity {
 
     private static final Uri LAUNCH_URI =
             Uri.parse("https://google.com/");
+
     private final TrustedWebActivityIntentBuilder builder = new TrustedWebActivityIntentBuilder(
             LAUNCH_URI);
 
@@ -83,12 +87,86 @@ public class LaunchTwaActivity extends Activity {
 
     private boolean serviceBound = false;
 
-    private String gpsAdId;
+    private String gpsAdId = null;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_launch_twa);
+        handleLaunching();
+    }
+
+
+    private static final long LAUNCH_TIMEOUT = 1000 * 5;// milliseconds
+    private boolean isWaitingForLaunch = true;
+
+    private void handleLaunching() {
+
+        CountDownTimer timeoutTimer = new CountDownTimer(LAUNCH_TIMEOUT, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+            }
+
+            @Override
+            public void onFinish() {
+                Toast.makeText(LaunchTwaActivity.this,"attribution took too long! Launching...",Toast.LENGTH_SHORT).show();
+                launchTWAwithOutAdTraceAdid();
+            }
+        };
+
+        AdTrace.getGoogleAdId(this, new OnDeviceIdsRead() {
+            @Override
+            public void onGoogleAdIdRead(String googleAdId) {
+                gpsAdId = googleAdId;
+            }
+        });
+
+        // get attribution object
+        AdTraceAttribution attribution = AdTrace.getAttribution();
+        // check if attribution is retrieved already!
+        if (attribution != null) {
+            Toast.makeText(this,"attribution already exist! Launching...",Toast.LENGTH_SHORT).show();
+            // already got the attribution no need to do anything!
+            Log.w("testtag123", "if (attribution !=null)");
+            Log.w("testtag123", "Attribution exists! time to launch!");
+            Log.w("testtag123", String.format("%s", attribution));
+            launchTWAwithMyCustomUri();
+        } else {
+            Log.d("testtag123", "attribution is not retrieved yet!");
+            GlobalApplication application = (GlobalApplication) getApplication();
+            application.setAdtraceAttributionChangeListener(new AdTraceAttributionChangeListener() {
+                @Override
+                public void onAdTraceAttributionChangeListener(AdTraceAttribution adTraceAttribution) {
+                    Toast.makeText(LaunchTwaActivity.this,"attribution got from Server! Launching...",Toast.LENGTH_SHORT).show();
+
+                    Log.w("testtag123", "onAdTraceAttributionChangeListener");
+                    Log.w("testtag123", String.format("%s", adTraceAttribution));
+                    Log.w("testtag123", "Attribution exists! time to launch!");
+                    launchTWAwithMyCustomUri();
+                }
+            });
+        }
+
+    }
+
+    private void launchTWAwithMyCustomUri() {
+        if (isWaitingForLaunch) {
+            isWaitingForLaunch = false;
+            // use adtrace adid in attribution or anything else
+            Uri mycustomUri = LAUNCH_URI;// or whatever you want
+            launch(mycustomUri);
+        }
+    }
+
+    private void launchTWAwithOutAdTraceAdid() {
+        // sometimes due to the user connection or infrastructure, attribution may not respond as expected
+        // in that case its better to launch the app to get a better ux
+        if (isWaitingForLaunch) {
+            isWaitingForLaunch = false;
+            // use googleAdId instead or anything
+            Uri mycustomUri = LAUNCH_URI;// or whatever you want
+            launch(mycustomUri);
+        }
     }
 
     /**
@@ -99,6 +177,12 @@ public class LaunchTwaActivity extends Activity {
     public void launch(View view) {
         TwaLauncher launcher = new TwaLauncher(this);
         launcher.launch(LAUNCH_URI);
+        launchers.add(launcher);
+    }
+
+    public void launch(Uri uri) {
+        TwaLauncher launcher = new TwaLauncher(this);
+        launcher.launch(uri);
         launchers.add(launcher);
     }
 
@@ -115,7 +199,7 @@ public class LaunchTwaActivity extends Activity {
 
 
         TwaLauncher launcher = new TwaLauncher(this);
-        launcher.launch(builder, mCustomTabsCallback,  null, null);
+        launcher.launch(builder, mCustomTabsCallback, null, null);
         launchers.add(launcher);
     }
 
@@ -135,7 +219,7 @@ public class LaunchTwaActivity extends Activity {
 
 
         TwaLauncher launcher = new TwaLauncher(this);
-        launcher.launch(builder, mCustomTabsCallback, null , null);
+        launcher.launch(builder, mCustomTabsCallback, null, null);
         launchers.add(launcher);
     }
 

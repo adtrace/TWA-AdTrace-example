@@ -20,36 +20,48 @@
     android:orientation="vertical"
     tools:context=".LaunchTwaActivity">
 
-    <Button
-        android:text="Launch"
-        android:onClick="launch"
+<!--    <Button-->
+<!--        android:text="Launch"-->
+<!--        android:onClick="launch"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_gravity="center"-->
+<!--        android:layout_margin="8dp" />-->
+
+<!--    <Button-->
+<!--        android:text="Launch with Custom Colors"-->
+<!--        android:onClick="launchWithCustomColors"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_gravity="center"-->
+<!--        android:layout_margin="8dp" />-->
+
+<!--    <Button-->
+<!--        android:text="Launch with Multiple Origins"-->
+<!--        android:onClick="launcherWithMultipleOrigins"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_gravity="center"-->
+<!--        android:layout_margin="8dp" />-->
+
+<!--    <Button-->
+<!--        android:text="Provide data in the referrer"-->
+<!--        android:onClick="launchWithCustomReferrer"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_gravity="center"-->
+<!--        android:layout_margin="8dp" />-->
+
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        />
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_margin="8dp" />
-
-    <Button
-        android:text="Launch with Custom Colors"
-        android:onClick="launchWithCustomColors"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_margin="8dp" />
-
-    <Button
-        android:text="Launch with Multiple Origins"
-        android:onClick="launcherWithMultipleOrigins"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_margin="8dp" />
-
-    <Button
-        android:text="Provide data in the referrer"
-        android:onClick="launchWithCustomReferrer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_margin="8dp" />
-
+        android:text="Splash is Loading data..."/>
 </LinearLayout>
