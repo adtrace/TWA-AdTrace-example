@@ -8,20 +8,32 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import io.adtrace.sdk.AdTrace;
+import io.adtrace.sdk.AdTraceAttribution;
 import io.adtrace.sdk.AdTraceConfig;
 import io.adtrace.sdk.LogLevel;
+import io.adtrace.sdk.OnAttributionChangedListener;
 import io.adtrace.sdk.OnDeviceIdsRead;
 
 public class GlobalApplication extends Application {
 
-    private final String adtraceAppToken = "123abcxyz";
+    private final String adtraceAppToken = "cn2dajeoy3uu";
+    private AdTraceAttributionChangeListener adtraceAttributionChangeListener;
 
+    public void setAdtraceAttributionChangeListener(AdTraceAttributionChangeListener adtraceAttributionChangeListener) {
+        this.adtraceAttributionChangeListener = adtraceAttributionChangeListener;
+    }
 
     @Override
     public void onCreate() {
         super.onCreate();
         AdTraceConfig adTraceConfig = new AdTraceConfig(this, adtraceAppToken, AdTraceConfig.ENVIRONMENT_SANDBOX);
         adTraceConfig.setLogLevel(LogLevel.VERBOSE);
+        adTraceConfig.setOnAttributionChangedListener(new OnAttributionChangedListener() {
+            @Override
+            public void onAttributionChanged(AdTraceAttribution attribution) {
+                if (adtraceAttributionChangeListener!=null) adtraceAttributionChangeListener.onAdTraceAttributionChangeListener(attribution);
+            }
+        });
         AdTrace.onCreate(adTraceConfig);
 
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
